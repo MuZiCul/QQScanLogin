@@ -199,14 +199,16 @@ class QqQun(object):
         data = {'bkn': self.bkn}
         r = requests.post(url, headers=self.headers, data=data, cookies=self.cookies)
         js_data = json.loads(r.content.decode())
+        # print(f"登录:{r.content.decode()}")
+        # print(f"js_data:{js_data}")
         qun_list = []
         data_list = []
-        data_list.extend(js_data['create'])
+        #data_list.extend(js_data['create'])
         data_list.extend(js_data['manage'])
         data_list.extend(js_data['join'])
         for x, i in enumerate(data_list, 1):
             qun_list.append(i['gc'])
-            print(f"{x}.群号:{i['gc']}\t群名称:{i['gn']}\t群主:{i['owner']}")
+            print(f"{x}.\t群号:{i['gc']}\t群名称:{i['gn']}\t群主:{i['owner']}")
         r.close()  # 关闭访问
         while True:
             qun = int(input('请输入需要操作的群(填序号):'))
