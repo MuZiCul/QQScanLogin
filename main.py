@@ -199,8 +199,6 @@ class QqQun(object):
         data = {'bkn': self.bkn}
         r = requests.post(url, headers=self.headers, data=data, cookies=self.cookies)
         js_data = json.loads(r.content.decode())
-        # print(f"登录:{r.content.decode()}")
-        # print(f"js_data:{js_data}")
         qun_list = []
         data_list = []
         #data_list.extend(js_data['create'])
