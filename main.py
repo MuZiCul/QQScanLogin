@@ -12,8 +12,6 @@ class ScanLogin(object):
     headers = {
         'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/73.0.3683.75 Safari/537.36',
-        'referer': 'https://xui.pylogin2.qq.com',
-        'origin': 'https://qun.qq.com'
     }
 
     def __init__(self):
@@ -31,9 +29,14 @@ class ScanLogin(object):
             d = json.loads(cookies)
             self.cookies = d
             self.skey = d.get('skey')
+            uin = d.get('uin')
             self.get_bkn()
-            url = 'https://qun.qq.com/cgi-bin/qun_mgr/get_group_list'
+            sRandomVal = self.get_random_str()
+            # url = 'https://qun.qq.com/cgi-bin/qun_mgr/get_group_list'
+            url = 'https://smoba.ams.game.qq.com/ams/ame/amesvr?ameVersion=0.3&sServiceType=yxzj&iActivityId=126433&sServiceDepartment=group_b&sSDID=cc1ddbcfd6e307471b5e73e28c6ff10c&sMiloTag=AMS-MILO-126433-407548-'+uin+'-'+str(int(time.time() * 1000))+'-'+sRandomVal+'&isXhrPost=true'
             data = {'bkn': self.bkn}
+            self.headers['origin'] = 'https://smoba.ams.game.qq.com'
+            self.headers['referer'] = 'https://smoba.ams.game.qq.com/ams/postMessage_noflash.html'
             r = requests.post(url, headers=self.headers, data=data, cookies=self.cookies)
             js_data = json.loads(r.content.decode())
             if js_data.get('ec') == 4:
@@ -41,7 +44,6 @@ class ScanLogin(object):
                 self.img_get()
             elif js_data.get('ec') == 0:
                 print('登入成功')
-                self.find_qun()
             else:
                 print('出现了一点小状况....')
         else:
@@ -69,9 +71,9 @@ class ScanLogin(object):
 
     # 二维码图片
     def img_get(self):
-        url = 'https://ssl.ptlogin2.qq.com/ptqrshow?appid=21000501&e=2&l=M&s=3&d=72&v=4&t=0.1155740403822001&daid=8&pt_3rd_aid=0&u1=https://pvp.qq.com/cp/a20161115tyf/page2.shtml'
+        url = 'https://ssl.ptlogin2.qq.com/ptqrshow?'
         params = {
-            'appid': '715030901',
+            'appid': '21000501',
             'e': '2',
             'l': 'M',
             's': '3',
@@ -79,7 +81,8 @@ class ScanLogin(object):
             'v': '4',
             't': random.random(),
             'daid': '8',
-            'pt_3rd_aid': '0'
+            'pt_3rd_aid': '0',
+            'u1':'https://pvp.qq.com/cp/a20161115tyf/page2.shtml'
         }
         r = requests.get(url, params=params)
         qrsig = requests.utils.dict_from_cookiejar(r.cookies).get('qrsig')
@@ -96,10 +99,15 @@ class ScanLogin(object):
     # 扫码状态
     def get_state(self):
         while True:
-            url = 'https://ssl.ptlogin2.qq.com/ptqrlogin?u1=https://pvp.qq.com/cp/a20161115tyf/page2.shtml&ptqrtoken=' + str(
+            # url = 'https://ssl.ptlogin2.qq.com/ptqrlogin?u1=https://pvp.qq.com/cp/a20161115tyf/page2.shtml&ptqrtoken=' + str(
+            #     self.token) + '&ptredirect=1&h=1&t=1&g=1&from_ui=1&ptlang=2052&action=0-0-' + str(
+            #     time.time()) + '&js_ver=24060510&js_type=1&login_sig=u6Xo6w5pUb7BYml9YPVtnUREqSE-FIcxEsA6jsVRSNlBb8y6Y-vOqZuIxtRAXQzI' \
+            # '&pt_uistyle=40&aid=21000501&daid=8&&o1vId=f1b25f53515fa5cb6662b276aa218c7b&pt_js_version=v1.49.1'
+
+            url = 'https://ssl.ptlogin2.qq.com/ptqrlogin?u1=https%3A%2F%2Fpvp.qq.com%2Fcp%2Fa20161115tyf%2Fpage2.shtml&ptqrtoken=' + str(
                 self.token) + '&ptredirect=1&h=1&t=1&g=1&from_ui=1&ptlang=2052&action=0-0-' + str(
-                time.time()) + '&js_ver=24060510&js_type=1&login_sig=u6Xo6w5pUb7BYml9YPVtnUREqSE-FIcxEsA6jsVRSNlBb8y6Y-vOqZuIxtRAXQzI' \
-            '&pt_uistyle=40&aid=21000501&daid=8&&o1vId=f1b25f53515fa5cb6662b276aa218c7b&pt_js_version=v1.49.1'
+                time.time()) + '&js_ver=24060510&js_type=1&login_sig=' \
+                               '&pt_uistyle=40&aid=21000501&daid=8&&o1vId=a666f11b8e981ee66f1aa829ab6f12d2&pt_js_version=v1.49.1'
             cookies = {'qrsig': self.qrsig}
             r = requests.get(url, cookies=cookies)
             r1 = r.text
@@ -116,11 +124,16 @@ class ScanLogin(object):
                 uin = requests.utils.dict_from_cookiejar(r.cookies).get('uin')
                 regex = re.compile(r'ptsigx=(.*?)&')
                 sigx = re.findall(regex, r.text)[0]
+                # url = 'https://ptlogin2.game.qq.com/check_sig?pttype=1&uin=' + uin + '&service=ptqrlogin&nodirect=0' \
+                #                                                                     '&ptsigx=' + sigx + \
+                #       '&s_url=https://pvp.qq.com/cp/a20161115tyf/page2.shtml&f_url=&ptlang=2052&ptredirect=101&aid=21000501' \
+                #       '&daid=8&j_later=0&low_login_hour=0&regmaster=0&pt_login_type=3&pt_aid=0&pt_aaid=16&pt_light=0' \
+                #       '&pt_3rd_aid=0 '
                 url = 'https://ptlogin2.game.qq.com/check_sig?pttype=1&uin=' + uin + '&service=ptqrlogin&nodirect=0' \
-                                                                                    '&ptsigx=' + sigx + \
-                      '&s_url=https://pvp.qq.com/cp/a20161115tyf/page2.shtml&f_url=&ptlang=2052&ptredirect=101&aid=21000501' \
+                      '&ptsigx=' + sigx + \
+                      '&s_url=https%3A%2F%2Fpvp.qq.com%2Fcp%2Fa20161115tyf%2Fpage2.shtml&f_url=&ptlang=2052&ptredirect=101&aid=21000501' \
                       '&daid=8&j_later=0&low_login_hour=0&regmaster=0&pt_login_type=3&pt_aid=0&pt_aaid=16&pt_light=0' \
-                      '&pt_3rd_aid=0 '
+                      '&pt_3rd_aid=0'
                 r2 = requests.get(url, cookies=cookies, allow_redirects=False)
                 self.cookies = requests.utils.dict_from_cookiejar(r2.cookies)
                 with open('cookie.txt', 'w') as f:
@@ -139,6 +152,16 @@ class ScanLogin(object):
         tempDate = time.strftime("%Y-%m-%d %H:%M:%S", timeValue)
         tm = datetime.datetime.strptime(tempDate, "%Y-%m-%d %H:%M:%S")
         return tm
+
+    def get_random_str(self):
+        import random
+
+        sRandomMask = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+        sRandomVal = ''
+        for _ in range(6):
+            rIndex = random.randint(0, 61)
+            sRandomVal += sRandomMask[rIndex]
+        return sRandomVal
 
     # # 修改群成员名称
     # def revise_card(self):
