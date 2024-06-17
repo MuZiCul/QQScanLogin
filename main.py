@@ -39,13 +39,14 @@ class ScanLogin(object):
             self.headers['referer'] = 'https://smoba.ams.game.qq.com/ams/postMessage_noflash.html'
             r = requests.post(url, headers=self.headers, data=data, cookies=self.cookies)
             js_data = json.loads(r.content.decode())
-            if js_data.get('ec') == 4:
-                print('cookie已过期，需要重新扫码')
-                self.img_get()
-            elif js_data.get('ec') == 0:
-                print('登入成功')
-            else:
-                print('出现了一点小状况....')
+            print(js_data)
+            # if js_data.get('ec') == 4:
+            #     print('cookie已过期，需要重新扫码')
+            #     self.img_get()
+            # elif js_data.get('ec') == 0:
+            #     print('登入成功')
+            # else:
+            #     print('出现了一点小状况....')
         else:
             print('第一次用吧？来来来，扫个码')
             self.img_get()
